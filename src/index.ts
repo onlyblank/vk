@@ -66,6 +66,7 @@ vk.updates.on("wall_reply_new", async (context) => {
 app.post('/super-secret-webhook-path', vk.updates.getWebhookCallback() as RequestHandler);
 
 app.post('/post', async (req, res) => {
+	// TODO: authentication.
 	const imageDataUrl = req.body.imageDataUrl;
 	const message = req.body.message;
 	const imageBuffer = Buffer.from(imageDataUrl, 'base64');
@@ -84,7 +85,7 @@ app.post('/post', async (req, res) => {
 		from_group: true,
 		signed: 0,
 		attachments: [photoAttachment.toString()]
-	})
+	});
 
 	res.json({
 		post_id: response.post_id
