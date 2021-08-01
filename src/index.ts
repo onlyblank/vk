@@ -55,10 +55,11 @@ vk.updates.on("wall_reply_new", async (context) => {
 		from_group: +config.GROUP_ID,
 	});
 
-	await vk_user.api.wall.deleteComment({
-		owner_id: -config.GROUP_ID,
-		comment_id: context.id,
-	});
+	if(isGuessCorrect)
+		await vk_user.api.wall.deleteComment({
+			owner_id: -config.GROUP_ID,
+			comment_id: context.id,
+		});
 	
 
 });
