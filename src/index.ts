@@ -3,18 +3,21 @@ import express from 'express';
 import { RequestHandler } from 'express-serve-static-core';
 import { VK } from 'vk-io';
 
-import config from './config';
+import config_environment from './config';
+
+// JWT token is stored here.
+const config = config_environment();
 
 const app = express();
 app.use(express.json());
 const vk = new VK({
-	token: config.ACCESS_TOKEN,
-	webhookConfirmation: config.CONFIRMATION_TOKEN,
-	webhookSecret: config.SECRET_TOKEN,
+	token: process.env.ACCESS_TOKEN,
+	webhookConfirmation: process.env.CONFIRMATION_TOKEN,
+	webhookSecret: process.env.SECRET_TOKEN,
 });
 
 const vk_user = new VK({
-	token: config.USER_TOKEN,
+	token: process.env.USER_TOKEN,
 });
 
 vk.updates.on("wall_reply_new", (context, next) => {
@@ -37,7 +40,7 @@ vk.updates.on("wall_reply_new", async (_context, next) => {
 vk.updates.on("wall_reply_new", async (context) => {
 	const guess = context.text;
 	
-	const response = await axios.get(config.API_URL + `/posts/${context.objectId}/answer`);
+	const response = await axios.get(process.env.API_URL + `/posts/${context.objectId}/answer`);
 	const answer = response.data.answer;
 	const isGuessCorrect = new RegExp(`^${answer}$`).test(guess);
 	const user = (await vk.api.users.get({
@@ -48,19 +51,18 @@ vk.updates.on("wall_reply_new", async (context) => {
 	const message = `[id${context.fromId}|${user.first_name}], ${isGuessCorrect ? "✔️" : "❌"}`
 	
 	await vk.api.wall.createComment({
-		owner_id: -config.GROUP_ID,
+		owner_id: -process.env.GROUP_ID,
 		post_id: context.objectId,
 		message: message,
 		reply_to_comment: context.id,
-		from_group: +config.GROUP_ID,
+		from_group: +process.env.GROUP_ID,
 	});
 
 	if(isGuessCorrect)
 		await vk_user.api.wall.deleteComment({
-			owner_id: -config.GROUP_ID,
+			owner_id: -process.env.GROUP_ID,
 			comment_id: context.id,
 		});
-	
 
 });
 
@@ -73,7 +75,7 @@ app.post('/post', async (req, res) => {
 	const imageBuffer = Buffer.from(imageDataUrl, 'base64');
 	
 	const photoAttachment = await vk_user.upload.wallPhoto({
-		group_id: +config.GROUP_ID,
+		group_id: +process.env.GROUP_ID,
 		source: {
 			value: imageBuffer,
 			contentLength: imageBuffer.length,
@@ -81,7 +83,7 @@ app.post('/post', async (req, res) => {
 	});
 
 	const response = await vk_user.api.wall.post({
-		owner_id: -config.GROUP_ID,
+		owner_id: -process.env.GROUP_ID,
 		message: message,
 		from_group: true,
 		signed: 0,
@@ -95,6 +97,6 @@ app.post('/post', async (req, res) => {
 });
 
 
-app.listen(+config.PORT, () => {
-	console.log(`Express app started at port ${config.PORT}`);
+app.listen(+process.env.PORT, () => {
+	console.log(`Express app started at port ${process.env.PORT}`);
 });
