@@ -4,6 +4,7 @@ import { RequestHandler } from 'express-serve-static-core';
 import { VK } from 'vk-io';
 
 import config_environment from './config';
+import Post from './models/Post';
 
 // JWT token is stored here.
 const config = config_environment();
@@ -20,21 +21,75 @@ const vk_user = new VK({
 	token: process.env.USER_TOKEN,
 });
 
-vk.updates.on("wall_reply_new", (context, next) => {
-	// Filter comments with text.
-	// Filter comments that are not from group.
-	// Filter comments that was written by person. 
-	if(context.text && context.fromId !== -context.$groupId && !context.isGroup)
-		next();
-});
 
-vk.updates.on("wall_reply_new", async (_context, next) => {
+// Error handling.
+vk.updates.use(async (_context, next) => {
 	try{
 		await next();
 	}
 	catch(error){
 		console.error("Error: " + error.message);
 	}
+});
+
+
+// Add answers to posts.
+let isAnswering = false;
+vk.updates.use(async (context, next) => {
+
+	if(isAnswering){
+		await next();
+		return;
+	}
+	isAnswering = true;
+
+	const hour_ms = 60*60*1000;
+	// About a day before now
+	const dateAfterAnsweredPosts = new Date(Date.now() - 1/20 * hour_ms);
+	console.warn(dateAfterAnsweredPosts)
+	// Run asynchronously.
+	axios.get(process.env.API_URL + '/posts?answered=false&created_at_lt='+dateAfterAnsweredPosts.toISOString())
+		.then(request => request.data)
+		.then(async (data : Post[]) => {
+			const patchedPostsIds : number[] = [];
+
+			for(const post of data){
+				await (
+					axios.put(process.env.API_URL + '/posts/' + post.id, { 
+						answered: true,
+					},{
+						headers: {
+						  	Authorization: 'Bearer ' + (await config).API_JWT,
+						},
+					})
+					.then(() => patchedPostsIds.push(post.id))
+					.catch((err) => console.error(`Error during setting post#${post.post_id} 'answered' flag: ${err.message}`))
+				);
+			}
+
+			for(const post of data){
+				if(patchedPostsIds.includes(post.id)){
+					// Run asynchronously.
+					vk.api.wall.createComment({
+						post_id: post.post_id,
+						message: "✔️ Правильный ответ:\n" + post.task.answer,
+						owner_id: -context.$groupId,
+					});
+				}
+			}
+		})
+		.finally(() => isAnswering = false);
+
+	
+	await next();
+});
+
+vk.updates.on("wall_reply_new", async (context, next) => {
+	// Filter comments with text.
+	// Filter comments that are not from this group.
+	// Filter comments that was written by person.
+	if(context.text && context.fromId !== -context.$groupId && !context.isGroup)
+		next();
 });
 
 vk.updates.on("wall_reply_new", async (context) => {
