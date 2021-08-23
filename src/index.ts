@@ -1,6 +1,5 @@
 import axios from 'axios';
 import express from 'express';
-import { RequestHandler } from 'express-serve-static-core';
 import { VK } from 'vk-io';
 
 import config_environment from './config';
@@ -46,7 +45,7 @@ vk.updates.use(async (context, next) => {
 	const hour_ms = 60*60*1000;
 	// About a day before now
 	const dateAfterAnsweredPosts = new Date(Date.now() - 23 * hour_ms);
-	console.warn(dateAfterAnsweredPosts)
+
 	// Run asynchronously.
 	axios.get(process.env.API_URL + '/posts?answered=false&created_at_lt='+dateAfterAnsweredPosts.toISOString())
 		.then(request => request.data)
@@ -121,7 +120,32 @@ vk.updates.on("wall_reply_new", async (context) => {
 
 });
 
-app.post('/super-secret-webhook-path', vk.updates.getWebhookCallback() as RequestHandler);
+
+// VK api endpoint.
+let previousEventId = ""; 
+app.post('/super-secret-webhook-path', async (req, res) => {
+	if (req.body.secret !== undefined && process.env.SECRET_TOKEN !== req.body.secret) {
+		res.writeHead(403);
+		res.end();
+		return;
+	}
+
+	if(req.body.type === "confirmation"){
+		res.end(process.env.CONFIRMATION_TOKEN);
+		return;
+	}
+
+	res.end('ok');
+
+	if(req.body.event_id !== "" && previousEventId === req.body.event_id )
+		return;
+	
+	console.log(`${req.body.type} [${req.body.event_id}]`)
+	
+	// Checks for duplicated events.
+	previousEventId = req.body.event_id;
+	vk.updates.handleWebhookUpdate(req.body);
+});
 
 app.post('/post', async (req, res) => {
 	// TODO: authentication.
