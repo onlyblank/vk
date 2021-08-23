@@ -72,7 +72,7 @@ vk.updates.use(async (context, next) => {
 					// Run asynchronously.
 					vk.api.wall.createComment({
 						post_id: post.post_id,
-						message: "✔️ Правильный ответ:\n" + post.task.answer,
+						message: "⚡Правильный ответ⚡\n" + post.task.answer,
 						owner_id: -context.$groupId,
 					});
 				}
