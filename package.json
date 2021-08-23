@@ -38,7 +38,7 @@
     "prepare-release": "run-s reset-hard test cov:check doc:html version doc:publish",
     "ngrok": "ngrok http 3003",
     "start:dev": "ts-node src/index.ts --watch",
-	"start": "node build/main"
+    "start": "node build/main"
   },
   "engines": {
     "node": ">=10"
