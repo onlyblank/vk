@@ -45,7 +45,7 @@ vk.updates.use(async (context, next) => {
 
 	const hour_ms = 60*60*1000;
 	// About a day before now
-	const dateAfterAnsweredPosts = new Date(Date.now() - 1/20 * hour_ms);
+	const dateAfterAnsweredPosts = new Date(Date.now() - 23 * hour_ms);
 	console.warn(dateAfterAnsweredPosts)
 	// Run asynchronously.
 	axios.get(process.env.API_URL + '/posts?answered=false&created_at_lt='+dateAfterAnsweredPosts.toISOString())
