@@ -122,7 +122,7 @@ vk.updates.on("wall_reply_new", async (context) => {
 
 
 // VK api endpoint.
-let previousEventId = ""; 
+const previousEventIds : string[] = []; 
 app.post('/super-secret-webhook-path', async (req, res) => {
 	if (req.body.secret !== undefined && process.env.SECRET_TOKEN !== req.body.secret) {
 		res.writeHead(403);
@@ -137,13 +137,17 @@ app.post('/super-secret-webhook-path', async (req, res) => {
 
 	res.end('ok');
 
-	if(req.body.event_id !== "" && previousEventId === req.body.event_id )
+	if(previousEventIds.includes(req.body.event_id) )
 		return;
 	
-	console.log(`${req.body.type} [${req.body.event_id}]`)
-	
 	// Checks for duplicated events.
-	previousEventId = req.body.event_id;
+	if(req.body.event_id)
+		previousEventIds.push(req.body.event_id);
+	if(previousEventIds.length > 6)
+		previousEventIds.shift();
+	
+	console.log(`${req.body.type} [${req.body.event_id}]`)
+
 	vk.updates.handleWebhookUpdate(req.body);
 });
 
