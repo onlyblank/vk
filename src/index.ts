@@ -3,7 +3,7 @@ import express from 'express';
 import { VK } from 'vk-io';
 
 import config_environment from './config';
-//import Post from './models/Post';
+import Post from './models/Post';
 
 // JWT token is stored here.
 const config = config_environment();
@@ -31,7 +31,7 @@ vk.updates.use(async (_context, next) => {
 	}
 });
 
-/*
+
 // Add answers to posts.
 let isAnswering = false;
 vk.updates.use(async (context, next) => {
@@ -83,7 +83,7 @@ vk.updates.use(async (context, next) => {
 	await next();
 });
 
-*/
+
 vk.updates.on("wall_reply_new", async (context, next) => {
 	// Only for admin. (Comment from group)
 	if(context.fromId !== -(await config).GROUP_ID){
@@ -115,7 +115,7 @@ vk.updates.on("wall_reply_new", async (context, next) => {
 	return next();
 });
 
-/*
+
 vk.updates.on("wall_reply_new", async (context, next) => {
 	// Filter comments with text.
 	// Filter comments that are not from this group.
@@ -152,7 +152,7 @@ vk.updates.on("wall_reply_new", async (context) => {
 		});
 
 });
-*/
+
 
 // VK api endpoint.
 const previousEventIds : string[] = []; 
