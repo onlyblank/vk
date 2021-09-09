@@ -3,7 +3,7 @@ import express from 'express';
 import { VK } from 'vk-io';
 
 import config_environment from './config';
-import Post from './models/Post';
+//import Post from './models/Post';
 
 // JWT token is stored here.
 const config = config_environment();
@@ -31,7 +31,7 @@ vk.updates.use(async (_context, next) => {
 	}
 });
 
-
+/*
 // Add answers to posts.
 let isAnswering = false;
 vk.updates.use(async (context, next) => {
@@ -83,6 +83,39 @@ vk.updates.use(async (context, next) => {
 	await next();
 });
 
+*/
+vk.updates.on("wall_reply_new", async (context, next) => {
+	// Only for admin. (Comment from group)
+	if(context.fromId !== -(await config).GROUP_ID){
+		return next();
+	}
+
+	if(context.text === "/delete"){
+		const post_id = context.objectId;
+		try {
+			const response = await axios.get(process.env.API_URL + `/posts?post_id=${post_id}`);
+			const id = response.data[0].id;
+			await axios.delete(process.env.API_URL + `/posts/${id}`,{
+				headers: {
+					Authorization: 'Bearer ' + (await config).API_JWT,
+				},
+			});
+		}
+		catch( err ){
+			console.error(err.message);
+		}
+
+		// async operation, so i dont need to use try/catch.
+		vk_user.api.wall.delete({
+			owner_id: -process.env.GROUP_ID,
+			post_id: post_id,
+		})
+	}
+
+	return next();
+});
+
+/*
 vk.updates.on("wall_reply_new", async (context, next) => {
 	// Filter comments with text.
 	// Filter comments that are not from this group.
@@ -119,7 +152,7 @@ vk.updates.on("wall_reply_new", async (context) => {
 		});
 
 });
-
+*/
 
 // VK api endpoint.
 const previousEventIds : string[] = []; 
