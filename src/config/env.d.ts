@@ -1,4 +1,4 @@
-import { Config } from './configTypes';
+import type { Config } from './configTypes';
 
 declare global {
 	namespace NodeJS {

@@ -11,6 +11,6 @@ const variables = [
 	'API_PASSWORD'
 ] as const;
 
-type Config = Record<typeof variables[number] | "API_JWT", string>;
+type Config = Record<typeof variables[number], string> & { API_JWT : Promise<string> };
 
 export { variables, Config };
