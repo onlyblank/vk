@@ -3,18 +3,24 @@ import axios from 'axios';
 import config from '../config';
 import { vk, vk_user } from '../vk';
 
+
+function buildMessage(fromId: number, userName: string, isGuessCorrect: boolean  ): string{
+	return `[id${fromId}|${userName}], ${isGuessCorrect ? "✔️" : "❌"}`;
+}
+
 export const commentAnswerChecker = async (context, next) => {
 	const guess = context.text;
 	
 	const response = await axios.get(config.API_URL + `/posts/${context.objectId}/answer`);
 	const answer = response.data.answer;
 	const isGuessCorrect = new RegExp(`^${answer}$`).test(guess);
+
 	const user = (await vk.api.users.get({
 		user_ids: context.fromId.toString(),
 	}))[0];
 
 
-	const message = `[id${context.fromId}|${user.first_name}], ${isGuessCorrect ? "✔️" : "❌"}`
+	const message = buildMessage( context.fromId, user.first_name, isGuessCorrect );
 	
 	await vk.api.wall.createComment({
 		owner_id: -config.GROUP_ID,
