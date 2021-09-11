@@ -24,11 +24,11 @@ export const commentAnswerChecker = async (context, next) => {
 		from_group: +config.GROUP_ID,
 	});
 
-	if(isGuessCorrect)
-		await vk_user.api.wall.deleteComment({
-			owner_id: -config.GROUP_ID,
-			comment_id: context.id,
-		});
+	// Delete an answer.
+	await vk_user.api.wall.deleteComment({
+		owner_id: -config.GROUP_ID,
+		comment_id: context.id,
+	});
 
 	await next();
 }
