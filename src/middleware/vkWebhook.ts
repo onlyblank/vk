@@ -28,7 +28,7 @@ export const vkWebhook : RequestHandler = async (req, res) =>{
 	if(previousEventIds.length > 6)
 		previousEventIds.shift();
 	
-	console.log(`${req.body.type} [${req.body.event_id}]`)
+	console.log(`${req.body.type} [${req.body.event_id}]`);
 
 	vk.updates.handleWebhookUpdate(req.body);
 };
