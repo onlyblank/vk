@@ -16,8 +16,8 @@ export const postAnswerer = async (context, next) => {
 	isAnswering = true;
 
 	const hour_ms = 60*60*1000;
-	// About a day before now
-	const dateAfterAnsweredPosts = new Date(Date.now() - 23 * hour_ms);
+	// About two days before now
+	const dateAfterAnsweredPosts = new Date(Date.now() - 47 * hour_ms);
 
 	// Run asynchronously.
 	axios.get(config.API_URL + '/posts?answered=false&created_at_lt='+dateAfterAnsweredPosts.toISOString())
