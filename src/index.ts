@@ -12,7 +12,9 @@ import {
 import { vk } from './vk';
 
 const app = express();
-app.use(express.json());
+app.use(express.json({
+	limit: "256mb"
+}));
 
 // Error handling.
 vk.updates.use(errorHandler);
