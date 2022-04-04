@@ -13,7 +13,7 @@ export const commentAnswerChecker = async (context, next) => {
 	
 	const response = await axios.get(config.API_URL + `/posts/${context.objectId}/answer`);
 	const answer = response.data.answer;
-	const isGuessCorrect = new RegExp(`^${answer}$`).test(guess);
+	const isGuessCorrect = answer == guess;
 
 	const user = (await vk.api.users.get({
 		user_ids: context.fromId.toString(),
