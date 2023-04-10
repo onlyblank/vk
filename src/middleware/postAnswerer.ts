@@ -20,14 +20,14 @@ export const postAnswerer = async (context, next) => {
 	const dateAfterAnsweredPosts = new Date(Date.now() - 47 * hour_ms);
 
 	// Run asynchronously.
-	axios.get(config.API_URL + '/posts?answered=false&created_at_lt='+dateAfterAnsweredPosts.toISOString())
+	axios.get(config.API_URL + '/vk-wall-posts?answered=false&created_at_lt='+dateAfterAnsweredPosts.toISOString())
 		.then(request => request.data)
 		.then(async (data : Post[]) => {
 			const patchedPostsIds : number[] = [];
 
 			for(const post of data){
 				await (
-					axios.put(config.API_URL + '/posts/' + post.id, { 
+					axios.put(config.API_URL + '/vk-wall-posts/' + post.id, { 
 						answered: true,
 					},{
 						headers: {
