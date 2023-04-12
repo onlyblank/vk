@@ -7,6 +7,7 @@ import {
 	errorHandler, 
 	postAnswerer, 
 	postCreator, 
+    vkWebhook,
 } from './middleware';
 import { vk } from './vk';
 
@@ -36,7 +37,8 @@ vk.updates.on("wall_reply_new", async (context, next) => {
 // Checks if given answer is correct.
 vk.updates.on("wall_reply_new", commentAnswerChecker);
 
-vk.updates.startPolling();
+// VK api endpoint.
+app.post('/super-secret-webhook-path', vkWebhook);
 
 
 app.post('/post', postCreator);
