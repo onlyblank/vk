@@ -8,17 +8,57 @@ function buildMessage(fromId: number, userName: string, isGuessCorrect: boolean 
 	return `[id${fromId}|${userName}], ${isGuessCorrect ? "✔️" : "❌"}`;
 }
 
+type StrapiEntity<T extends { id: number }> = {
+  data: {
+    id: number;
+    attributes: Omit<T, 'id'>;
+  };
+};
+
+type StrapiEntityList<T extends { id: number }> = {
+  data: {
+    id: number;
+    attributes: Omit<T, 'id'>;
+  }[];
+};
+
+type VKWallPostDTO = StrapiEntityList<{
+  id: number;
+  task: StrapiEntity<{
+    id: number;
+    answer: [
+      {
+        id: number;
+        text: string;
+      }
+    ];
+  }>;
+}>;
+
+async function getPostAnswer(post_id: number): Promise<string> {
+  return axios
+    .get<VKWallPostDTO>(
+      `${config.API_URL}/vk-wall-posts?where[post_id]=${post_id}&populate[task][populate]=answer`,
+      {
+        headers: {
+          Authorization: `Bearer ${await config.API_JWT}`
+        }
+      }
+    )
+    .then(({ data }) => data)
+    .then((dto) => dto.data[0].attributes.task.data.attributes.answer[0].text);
+}
+
 export const commentAnswerChecker = async (context, next) => {
 	const guess = context.text;
-	
-	const response = await axios.get(config.API_URL + `/posts/${context.objectId}/answer`);
-	const answer = response.data.answer;
+const answer = await getPostAnswer(context.objectId);
+
+
 	const isGuessCorrect = answer == guess;
 
 	const user = (await vk.api.users.get({
 		user_ids: context.fromId.toString(),
 	}))[0];
-
 
 	const message = buildMessage( context.fromId, user.first_name, isGuessCorrect );
 	

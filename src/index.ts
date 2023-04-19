@@ -5,7 +5,8 @@ import {
 	adminCommandExecutor, 
 	commentAnswerChecker, 
 	errorHandler, 
-	postAnswerer, 
+// postAnswerer,
+
 	postCreator, 
     vkWebhook,
 } from './middleware';
@@ -20,7 +21,8 @@ app.use(express.json({
 vk.updates.use(errorHandler);
 
 // Adds answers to posts.
-vk.updates.use(postAnswerer);
+// vk.updates.use(postAnswerer);
+
 
 // Admin `/delete` function.
 vk.updates.on("wall_reply_new", adminCommandExecutor);
